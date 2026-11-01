@@ -1,0 +1,262 @@
+{
+  "ttlSeconds": 21600,
+  "app": {
+    "minVersion": "0.1.0",
+    "latestVersion": "0.1.0"
+  },
+  "api": {
+    "baseUrl": "https://your-service-abc123-uc.a.run.app",
+    "endpoints": {
+      "config.bootstrap": {
+        "method": "GET",
+        "path": "/v1/bootstrap"
+      },
+      "auth.google": {
+        "method": "POST",
+        "path": "/v1/auth/google"
+      },
+      "auth.refresh": {
+        "method": "POST",
+        "path": "/v1/auth/refresh"
+      },
+      "auth.logout": {
+        "method": "POST",
+        "path": "/v1/auth/logout"
+      },
+      "me.get": {
+        "method": "GET",
+        "path": "/v1/me"
+      },
+      "sync.push": {
+        "method": "POST",
+        "path": "/v1/sync/push",
+        "timeoutMs": 20000
+      },
+      "sync.pull": {
+        "method": "GET",
+        "path": "/v1/sync/pull"
+      }
+    }
+  },
+  "features": {
+    "sync": true,
+    "signInWithGoogle": true,
+    "csvExport": false,
+    "syncRawNotificationText": false
+  },
+  "sync": {
+    "intervalSeconds": 900,
+    "debounceSeconds": 5,
+    "pushBatchSize": 200,
+    "pullPageSize": 500
+  },
+  "catalog": {
+    "sources": {
+      "version": 1,
+      "items": [
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000110",
+          "name": "MoMo",
+          "kind": "wallet",
+          "sortOrder": 0,
+          "logoUrl": "https://your-bucket.r2.dev/logos/momo.png",
+          "aliases": [
+            "momo"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000111",
+          "name": "ZaloPay",
+          "kind": "wallet",
+          "sortOrder": 1,
+          "logoUrl": "https://your-bucket.r2.dev/logos/zalopay.png",
+          "aliases": [
+            "zalopay"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000112",
+          "name": "ShopeePay",
+          "kind": "wallet",
+          "sortOrder": 2,
+          "logoUrl": "https://your-bucket.r2.dev/logos/shopeepay.png",
+          "aliases": [
+            "shopeepay"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000113",
+          "name": "VNPay",
+          "kind": "wallet",
+          "sortOrder": 3,
+          "logoUrl": "https://your-bucket.r2.dev/logos/vnpay.png",
+          "aliases": [
+            "vnpay"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000114",
+          "name": "Viettel Money",
+          "kind": "wallet",
+          "sortOrder": 4,
+          "logoUrl": "https://your-bucket.r2.dev/logos/viettelmoney.png",
+          "aliases": [
+            "viettelmoney",
+            "viettelpay"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000140",
+          "name": "Vietcombank",
+          "kind": "bank",
+          "sortOrder": 0,
+          "logoUrl": "https://your-bucket.r2.dev/logos/vietcombank.png",
+          "aliases": [
+            "vietcombank",
+            "vcb"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000141",
+          "name": "Techcombank",
+          "kind": "bank",
+          "sortOrder": 1,
+          "logoUrl": "https://your-bucket.r2.dev/logos/techcombank.png",
+          "aliases": [
+            "techcombank",
+            "tcb"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000142",
+          "name": "MB Bank",
+          "kind": "bank",
+          "sortOrder": 2,
+          "logoUrl": "https://your-bucket.r2.dev/logos/mbbank.png",
+          "aliases": [
+            "mbbank"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000143",
+          "name": "BIDV",
+          "kind": "bank",
+          "sortOrder": 3,
+          "logoUrl": "https://your-bucket.r2.dev/logos/bidv.png",
+          "aliases": [
+            "bidv"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000144",
+          "name": "VietinBank",
+          "kind": "bank",
+          "sortOrder": 4,
+          "logoUrl": "https://your-bucket.r2.dev/logos/vietinbank.png",
+          "aliases": [
+            "vietinbank"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000145",
+          "name": "Agribank",
+          "kind": "bank",
+          "sortOrder": 5,
+          "logoUrl": "https://your-bucket.r2.dev/logos/agribank.png",
+          "aliases": [
+            "agribank"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000146",
+          "name": "ACB",
+          "kind": "bank",
+          "sortOrder": 6,
+          "logoUrl": "https://your-bucket.r2.dev/logos/acb.png",
+          "aliases": [
+            "acb"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000147",
+          "name": "VPBank",
+          "kind": "bank",
+          "sortOrder": 7,
+          "logoUrl": "https://your-bucket.r2.dev/logos/vpbank.png",
+          "aliases": [
+            "vpbank"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000148",
+          "name": "TPBank",
+          "kind": "bank",
+          "sortOrder": 8,
+          "logoUrl": "https://your-bucket.r2.dev/logos/tpbank.png",
+          "aliases": [
+            "tpbank"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000149",
+          "name": "Sacombank",
+          "kind": "bank",
+          "sortOrder": 9,
+          "logoUrl": "https://your-bucket.r2.dev/logos/sacombank.png",
+          "aliases": [
+            "sacombank"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-00000000014A",
+          "name": "HDBank",
+          "kind": "bank",
+          "sortOrder": 10,
+          "logoUrl": "https://your-bucket.r2.dev/logos/hdbank.png",
+          "aliases": [
+            "hdbank"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-00000000014B",
+          "name": "VIB",
+          "kind": "bank",
+          "sortOrder": 11,
+          "logoUrl": "https://your-bucket.r2.dev/logos/vib.png",
+          "aliases": [
+            "vib"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-00000000014C",
+          "name": "Cake",
+          "kind": "bank",
+          "sortOrder": 12,
+          "logoUrl": "https://your-bucket.r2.dev/logos/cake.png",
+          "aliases": [
+            "cake"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-00000000014D",
+          "name": "Timo",
+          "kind": "bank",
+          "sortOrder": 13,
+          "logoUrl": "https://your-bucket.r2.dev/logos/timo.png",
+          "aliases": [
+            "timo"
+          ]
+        },
+        {
+          "id": "6E0C7A90-0000-4000-8000-000000000101",
+          "name": "Tiền mặt",
+          "kind": "cash",
+          "sortOrder": 0,
+          "aliases": [
+            "tienmat"
+          ]
+        }
+      ]
+    }
+  }
+}

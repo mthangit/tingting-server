@@ -1,0 +1,140 @@
+# Test mọi push và pull request. Gắn tag phiên bản (v1.2.3) thì build image và đẩy lên Artifact Registry.
+# Deploy là bước bấm tay: tab Actions → deploy → Run workflow → nhập phiên bản (chỉ người có quyền ghi repo bấm được).
+# Đăng nhập Google Cloud bằng Workload Identity Federation (không có key JSON). Cài đặt một lần: README, mục CI/CD.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Phiên bản đã build (tag), ví dụ v0.3.0
+        required: true
+        type: string
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && 'deploy' || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/ting-backend
+
+jobs:
+  test:
+    if: github.event_name != 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    # Postgres thật cho test store đăng nhập và đồng bộ (không có thì các test đó tự bỏ qua).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: ting
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 2s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - run: go vet ./...
+      - run: go test ./...
+        env:
+          TING_TEST_DATABASE_URL: postgres://postgres:test@localhost:5432/ting?sslmode=disable
+      # Config sai sẽ làm hỏng app trên mọi máy: kiểm tra luôn trong CI.
+      # configs/prod.json (domain thật) không nằm trong repo; kiểm tra bản mẫu cùng cấu trúc.
+      - run: go run ./cmd/tingctl validate configs/local.json
+      - run: go run ./cmd/tingctl validate configs/prod.example.json
+
+  build:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # để lấy token OIDC đổi sang quyền Google Cloud
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.GCP_REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      # Image gắn tag theo phiên bản; deploy chọn phiên bản theo tag này.
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ env.IMAGE }}:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Hướng dẫn deploy
+        run: |
+          echo "::notice::Đã build ${{ github.ref_name }}. Deploy: Actions → deploy → Run workflow → version = ${{ github.ref_name }}"
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Kiểm tra phiên bản
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::version phải có dạng v1.2.3"; exit 1; }
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.WIF_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      # Deploy theo digest của tag lúc bấm, và báo lỗi rõ nếu phiên bản chưa được build.
+      - id: image
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          digest=$(gcloud artifacts docker images describe "$IMAGE:$VERSION" --format='value(image_summary.digest)') \
+            || { echo "::error::Chưa có image $VERSION. Gắn tag và đợi job build xong trước."; exit 1; }
+          echo "ref=$IMAGE@$digest" >> "$GITHUB_OUTPUT"
+
+      # Chỉ đổi image; biến môi trường, secret, scaling giữ như revision đang chạy.
+      - uses: google-github-actions/deploy-cloudrun@v2
+        id: deploy
+        with:
+          service: ${{ vars.CLOUD_RUN_SERVICE }}
+          region: ${{ vars.GCP_REGION }}
+          image: ${{ steps.image.outputs.ref }}
+
+      - name: Kiểm tra server còn sống
+        run: |
+          for i in $(seq 1 10); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "${{ steps.deploy.outputs.url }}/health")
+            [ "$code" = 204 ] && echo "OK $code" && exit 0
+            sleep 3
+          done
+          echo "::error::/health trả $code"
+          exit 1

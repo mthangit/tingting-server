@@ -1,0 +1,8 @@
+/server
+/tingctl
+.env
+.DS_Store
+.wrangler/
+
+# Config production thật (domain, bucket). Chép từ configs/prod.example.json.
+configs/prod.json
