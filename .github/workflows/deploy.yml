@@ -1,5 +1,6 @@
 # Test mọi push và pull request. Gắn tag phiên bản (v1.2.3) thì build image và đẩy lên Artifact Registry.
-# Deploy là bước bấm tay: tab Actions → deploy → Run workflow → nhập phiên bản (chỉ người có quyền ghi repo bấm được).
+# Deploy là bước bấm tay: tab Actions → deploy → Run workflow (chỉ người có quyền ghi repo bấm được). Chọn tag ở ô
+# "Use workflow from" thì để trống version; chạy từ main thì nhập version. Xem scripts/deploy-version.sh.
 # Đăng nhập Google Cloud bằng Workload Identity Federation (không có key JSON). Cài đặt một lần: README, mục CI/CD.
 name: deploy
 
@@ -11,8 +12,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Phiên bản đã build (tag), ví dụ v0.3.0
-        required: true
+        description: Phiên bản đã build, ví dụ v0.3.1. Để trống nếu chọn tag ở ô "Use workflow from"
+        required: false
         type: string
 
 concurrency:
@@ -99,11 +100,18 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Kiểm tra phiên bản
+      - uses: actions/checkout@v4
+
+      - name: Chọn phiên bản
+        id: version
         env:
-          VERSION: ${{ inputs.version }}
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT: ${{ inputs.version }}
         run: |
-          [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::version phải có dạng v1.2.3"; exit 1; }
+          version=$(scripts/deploy-version.sh "$REF_TYPE" "$REF_NAME" "$INPUT")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploy $version"
 
       - uses: google-github-actions/auth@v2
         with:
@@ -115,7 +123,7 @@ jobs:
       # Deploy theo digest của tag lúc bấm, và báo lỗi rõ nếu phiên bản chưa được build.
       - id: image
         env:
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: |
           digest=$(gcloud artifacts docker images describe "$IMAGE:$VERSION" --format='value(image_summary.digest)') \
             || { echo "::error::Chưa có image $VERSION. Gắn tag và đợi job build xong trước."; exit 1; }

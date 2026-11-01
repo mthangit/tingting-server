@@ -124,8 +124,12 @@ git tag v0.4.0 && git push origin v0.4.0
 1. The workflow runs the tests, then builds `us-central1-docker.pkg.dev/<PROJECT_ID>/ting/ting-backend:v0.4.0`
    and pushes it to Artifact Registry.
 2. To deploy: GitHub → **Actions** → pick the **deploy** workflow in the left column (not "All workflows") →
-   **Run workflow** → branch `main`, `version` = `v0.4.0` → **Run workflow**. Only people with write access to the
-   repo see the button.
+   **Run workflow**, then either:
+   - pick the tag `v0.4.0` under *Use workflow from* and leave `version` empty: the tag name is used; or
+   - keep `main` and type `v0.4.0` in `version`.
+
+   Picking a tag and typing a different version fails, so the two can't disagree. Only people with write access to the
+   repo see the button. The rules live in `scripts/deploy-version.sh`.
 3. The deploy job deploys that image by digest to the `ting-backend` Cloud Run service and checks `/health`.
 
 Rolling back is the same with an older version. You can also switch traffic back to an earlier revision in the
@@ -139,7 +143,7 @@ The config is not published by the workflow; the workflow only validates `config
 |---|---|
 | Push to `main`, pull request | `go vet`, `go test` against a real Postgres, `tingctl validate` on `configs/local.json` and `configs/prod.example.json` |
 | Push a tag `vX.Y.Z` | Tests, then build a `linux/amd64` image tagged `vX.Y.Z` and push it to Artifact Registry |
-| **Run workflow** with `version = vX.Y.Z` | Deploy that image to Cloud Run (by digest), then check `/health` |
+| **Run workflow** from tag `vX.Y.Z` (version empty), or from `main` with `version = vX.Y.Z` | Deploy that image to Cloud Run (by digest), then check `/health` |
 
 Deploying only swaps the image. Environment variables, secrets and scaling stay as configured on the running
 service, so change those in the Cloud Run console.

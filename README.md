@@ -40,7 +40,8 @@ Go · Google Cloud Run · Neon Postgres · Cloudflare R2 · GitHub Actions
 git tag v0.4.0 && git push origin v0.4.0     # tests, then builds the image into Artifact Registry
 ```
 
-Then deploy it: GitHub → **Actions** → **deploy** → **Run workflow** → `version = v0.4.0`. Pushes to `main` and pull
+Then deploy it: GitHub → **Actions** → **deploy** → **Run workflow** → pick the tag `v0.4.0` under *Use workflow
+from* and leave `version` empty (or keep `main` and type `v0.4.0`). Pushes to `main` and pull
 requests only run the tests. GitHub Actions signs in to Google Cloud with Workload Identity Federation, so there are
 no keys stored anywhere.
 
